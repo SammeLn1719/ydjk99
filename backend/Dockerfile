@@ -2,20 +2,23 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy package files
+# Копируем файлы зависимостей
 COPY package*.json ./
 
-# Install dependencies
+# Устанавливаем зависимости
 RUN npm ci
 
-# Copy source code
+# Копируем исходный код
 COPY . .
 
-# Build TypeScript
+# Собираем TypeScript
 RUN npm run build
 
-# Expose port
-EXPOSE 3001
+# Устанавливаем pg
+RUN npm install pg
 
-# Start the application
+# Открываем порт
+EXPOSE 8001
+
+# Запускаем приложение
 CMD ["npm", "start"]

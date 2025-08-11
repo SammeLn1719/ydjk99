@@ -1,6 +1,20 @@
 version: '3.8'
 
 services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: your_app_name
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    restart: unless-stopped
   backend:
     build: ./backend
     ports:
@@ -8,6 +22,9 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=8001
+      - DATABASE_URL=postgresql://postgres:postgres_password@postgres:5432/your_app_name
+    depends_on:
+      - postgres
     networks:
       - app-network
     restart: unless-stopped
@@ -25,3 +42,6 @@ services:
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  postgres_data:
