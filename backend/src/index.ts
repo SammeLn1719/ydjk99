@@ -1,10 +1,11 @@
 import express, { Application } from "express";
 import cors from "cors";
 import pool from "./config/database";
+import initializeDatabase from "./config/initDatabase";
 
 const authRouter = require('./routers/authRouter');
 const app: Application = express();
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 8002;
 
 // Middleware
 app.use(cors());
@@ -45,9 +46,14 @@ app.get('/api/messages', (req, res) => {
     res.json(messages);
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     try {
-    console.log(`Server is running on port ${PORT}`);
+        console.log(`Server is running on port ${PORT}`);
+        
+        // Инициализируем базу данных при запуске сервера
+        await initializeDatabase();
+        console.log('Database initialized successfully');
+        
     } catch (error) {
         console.error('Error starting server:', error);
     }
