@@ -2,6 +2,27 @@
 
 Полноценное веб-приложение с React + TypeScript фронтендом и Node.js + Express бэкендом, запускаемое через Docker контейнеры.
 
+
+# Разработка 
+docker exec -it postgres_db psql -U postgres -d your_app_name - Для подключения к db
+
+```
+curl -X POST http://localhost:8001/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "....": "....",
+    "....": "....",
+    "....": "...."
+  }'
+
+``` - curl для запросов из cmd
+
+```
+docker-compose down
+docker-compose up --build
+``` - запуск контейнера
+
+
 ## Структура проекта
 
 ```

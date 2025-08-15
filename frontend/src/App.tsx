@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import AuthContainer from './components/AuthContainer';
+import Dashboard from './components/Dashboard';
+import NotFound from './components/NotFound';
 
 interface Message {
   id: number;
@@ -47,45 +51,14 @@ function App() {
   }, []);
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Messager App</h1>
-        <p>React + TypeScript Frontend with Node.js + Express Backend</p>
-      </header>
-
-      <main className="App-main">
-        <section className="health-section">
-          <h2>Backend Health Status</h2>
-          {health ? (
-            <div className="health-info">
-              <p><strong>Status:</strong> {health.status}</p>
-              <p><strong>Service:</strong> {health.service}</p>
-              <p><strong>Timestamp:</strong> {new Date(health.timestamp).toLocaleString()}</p>
-            </div>
-          ) : (
-            <p>Loading health status...</p>
-          )}
-        </section>
-
-        <section className="messages-section">
-          <h2>Messages from Backend</h2>
-          <button onClick={fetchMessages} disabled={loading}>
-            {loading ? 'Loading...' : 'Refresh Messages'}
-          </button>
-          
-          <div className="messages-list">
-            {messages.map((message) => (
-              <div key={message.id} className="message">
-                <p className="message-text">{message.text}</p>
-                <small className="message-timestamp">
-                  {new Date(message.timestamp).toLocaleString()}
-                </small>
-              </div>
-            ))}
-          </div>
-        </section>
-      </main>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<AuthContainer />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Router>
   );
 }
 
