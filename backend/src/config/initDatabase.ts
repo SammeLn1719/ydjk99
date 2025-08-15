@@ -55,3 +55,5 @@ export const getDatabaseInfo = async () => {
 // Экспортируем функцию для использования в основном файле
 export default initializeDatabase;
 
+
+
