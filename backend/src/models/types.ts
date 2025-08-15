@@ -1,119 +1,82 @@
-import { User, UserWithRole } from './User';
-import { Role, RoleWithUsers } from './Roles';
-
-// Типы для запросов к базе данных
-export interface CreateUserRequest {
-    username: string;
-    email: string;
-    password: string;
-    role_id: number;
+export interface ChatMessage {
+  id: string;
+  text: string;
+  senderId: string;
+  senderName: string;
+  timestamp: string;
+  chatId: string;
 }
 
-export interface UpdateUserRequest {
-    username?: string;
-    email?: string;
-    role_id?: number;
+export interface User {
+  id: string;
+  name: string;
+  isOnline: boolean;
+  lastSeen?: string;
+  role?: UserRole;
 }
 
-export interface CreateRoleRequest {
-    name: string;
-    description?: string;
-    permissions: string[];
+export enum UserRole {
+  ADMIN = 'admin',
+  MODERATOR = 'moderator',
+  USER = 'user',
+  OBSERVER = 'observer'
 }
 
-export interface UpdateRoleRequest {
-    name?: string;
-    description?: string;
-    permissions?: string[];
+export interface TypingEvent {
+  userId: string;
+  userName: string;
+  chatId: string;
+  isTyping: boolean;
 }
 
-// Типы для ответов API
-export interface UserResponse {
-    id: number;
-    username: string;
-    email: string;
-    role: {
-        id: number;
-        name: string;
-        description?: string;
-        permissions: string[];
-    };
-    created_at: Date;
-    updated_at: Date;
-    is_active: boolean;
+export interface Contact {
+  id: string;
+  name: string;
+  avatar?: string;
+  lastMessage?: string;
+  lastMessageTime?: string;
+  unreadCount?: number;
+  isOnline?: boolean;
 }
 
-export interface RoleResponse {
-    id: number;
-    name: string;
-    description?: string;
-    permissions: string[];
-    user_count: number;
-    created_at: Date;
-    updated_at: Date;
-    is_active: boolean;
+export interface Chat {
+  id: string;
+  name: string;
+  type: 'private' | 'group' | 'public' | 'announcement';
+  participants: string[];
+  moderators: string[];
+  admins: string[];
+  observers: string[];
+  lastMessage?: ChatMessage;
+  createdAt: string;
+  updatedAt: string;
+  isActive: boolean;
+  maxParticipants?: number;
 }
 
-// Типы для фильтрации и пагинации
-export interface PaginationParams {
-    page?: number;
-    limit?: number;
-    offset?: number;
+export interface Room {
+  id: string;
+  name: string;
+  description?: string;
+  type: RoomType;
+  participants: RoomParticipant[];
+  maxParticipants: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface UserFilters {
-    role_id?: number;
-    is_active?: boolean;
-    search?: string;
+export enum RoomType {
+  PUBLIC = 'public',
+  PRIVATE = 'private',
+  RESTRICTED = 'restricted',
+  ANNOUNCEMENT = 'announcement'
 }
 
-export interface RoleFilters {
-    is_active?: boolean;
-    has_permission?: string;
-    search?: string;
+export interface RoomParticipant {
+  userId: string;
+  userName: string;
+  role: UserRole;
+  joinedAt: string;
+  lastActivity?: string;
 }
-
-// Типы для результатов запросов
-export interface PaginatedResult<T> {
-    data: T[];
-    pagination: {
-        page: number;
-        limit: number;
-        total: number;
-        total_pages: number;
-    };
-}
-
-// Типы для аутентификации
-export interface LoginRequest {
-    email: string;
-    password: string;
-}
-
-export interface RegisterRequest {
-    username: string;
-    email: string;
-    password: string;
-    role_id?: number; // Если не указано, будет назначена роль по умолчанию
-}
-
-export interface AuthResponse {
-    user: UserResponse;
-    token: string;
-    refresh_token?: string;
-}
-
-// Типы для проверки разрешений
-export interface PermissionCheck {
-    user_id: number;
-    required_permissions: string[];
-}
-
-export interface HasPermissionResult {
-    has_permission: boolean;
-    missing_permissions: string[];
-    user_permissions: string[];
-}
-
-
-

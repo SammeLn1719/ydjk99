@@ -23,6 +23,7 @@ services:
       - NODE_ENV=production
       - PORT=8001
       - DATABASE_URL=postgresql://postgres:postgres_password@postgres:5432/your_app_name
+      - SECRET_KEY=cf235e9094c78b74ce6d7a95243eb05e13a79717ebb021fe80f5d28961807af372d2fee9e4fd248596e8475dc7ac322044c1ec0d438c102025152609e7210dc1
     depends_on:
       - postgres
     networks:
