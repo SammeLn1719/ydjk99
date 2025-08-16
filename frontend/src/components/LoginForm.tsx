@@ -3,7 +3,8 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import axios from 'axios';
-import { setToken } from '../utils/auth';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 import './LoginForm.css';
 
 interface LoginFormData {
@@ -24,6 +25,8 @@ const LoginForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const {
     register,
@@ -45,13 +48,14 @@ const LoginForm: React.FC = () => {
         password: data.password,
       });
 
-      // Сохраняем токен в localStorage
-      setToken(response.data.token);
+      // Сохраняем токен и обновляем состояние авторизации
+      console.log('Login successful, token:', response.data.token);
+      login(response.data.token);
       setSuccess('Вход выполнен успешно!');
       reset();
-      localStorage.setItem('token', response.data.token);
-      window.location.href = '/dashboard';
-      // Здесь можно добавить редирект или обновление состояния приложения
+      
+      // Немедленный редирект
+      navigate('/dashboard');
     } catch (err: any) {
       if (err.response?.data?.message) {
         setError(err.response.data.message);
