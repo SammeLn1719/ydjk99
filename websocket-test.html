@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Test</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .connected { background-color: #d4edda; color: #155724; }
+        .disconnected { background-color: #f8d7da; color: #721c24; }
+        .messages {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #f8f9fa;
+        }
+        .message {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .own { background-color: #007bff; color: white; }
+        .other { background-color: #e9ecef; }
+        input, button {
+            padding: 8px;
+            margin: 5px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>WebSocket Test - Messager</h1>
+    
+    <div id="status" class="status disconnected">Отключено</div>
+    
+    <div>
+        <input type="text" id="userId" placeholder="User ID" value="test-user-1">
+        <input type="text" id="userName" placeholder="User Name" value="Тестовый пользователь">
+        <button onclick="connect()">Подключиться</button>
+        <button onclick="disconnect()">Отключиться</button>
+    </div>
+    
+    <div>
+        <input type="text" id="chatId" placeholder="Chat ID" value="chat-1">
+        <button onclick="joinChat()">Присоединиться к чату</button>
+        <button onclick="leaveChat()">Покинуть чат</button>
+    </div>
+    
+    <div>
+        <input type="text" id="message" placeholder="Сообщение">
+        <button onclick="sendMessage()">Отправить</button>
+        <button onclick="sendTyping(true)">Начать печатать</button>
+        <button onclick="sendTyping(false)">Остановить печатать</button>
+    </div>
+    
+    <h3>Сообщения:</h3>
+    <div id="messages" class="messages"></div>
+    
+    <h3>Логи:</h3>
+    <div id="logs" class="messages"></div>
+
+    <script>
+        let socket = null;
+        let currentChatId = null;
+
+        function log(message) {
+            const logs = document.getElementById('logs');
+            const time = new Date().toLocaleTimeString();
+            logs.innerHTML += `<div>[${time}] ${message}</div>`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        function updateStatus(connected) {
+            const status = document.getElementById('status');
+            status.textContent = connected ? 'Подключено' : 'Отключено';
+            status.className = `status ${connected ? 'connected' : 'disconnected'}`;
+        }
+
+        function addMessage(message, isOwn = false) {
+            const messages = document.getElementById('messages');
+            const time = new Date(message.timestamp).toLocaleTimeString();
+            const className = isOwn ? 'message own' : 'message other';
+            messages.innerHTML += `<div class="${className}">
+                <strong>${message.senderName}</strong> (${time}): ${message.text}
+            </div>`;
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function connect() {
+            const userId = document.getElementById('userId').value;
+            const userName = document.getElementById('userName').value;
+            
+            if (!userId || !userName) {
+                alert('Введите User ID и User Name');
+                return;
+            }
+
+            socket = io('http://localhost:8001', {
+                auth: {
+                    userId,
+                    userName
+                }
+            });
+
+            socket.on('connect', () => {
+                log('Подключен к WebSocket серверу');
+                updateStatus(true);
+                
+                // Аутентификация
+                socket.emit('authenticate', { userId, userName });
+            });
+
+            socket.on('disconnect', () => {
+                log('Отключен от WebSocket сервера');
+                updateStatus(false);
+            });
+
+            socket.on('message', (message) => {
+                log(`Получено сообщение: ${message.text} от ${message.senderName}`);
+                addMessage(message, message.senderId === userId);
+            });
+
+            socket.on('typing', (event) => {
+                log(`${event.userName} ${event.isTyping ? 'начал' : 'остановил'} печатать`);
+            });
+
+            socket.on('userStatus', (users) => {
+                log(`Обновление статуса пользователей: ${users.length} онлайн`);
+            });
+
+            socket.on('error', (error) => {
+                log(`Ошибка: ${error}`);
+            });
+        }
+
+        function disconnect() {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+                updateStatus(false);
+                log('Отключение от сервера');
+            }
+        }
+
+        function joinChat() {
+            const chatId = document.getElementById('chatId').value;
+            if (!socket || !chatId) {
+                alert('Сначала подключитесь и введите Chat ID');
+                return;
+            }
+            
+            socket.emit('joinChat', { chatId });
+            currentChatId = chatId;
+            log(`Присоединился к чату: ${chatId}`);
+        }
+
+        function leaveChat() {
+            if (!socket || !currentChatId) {
+                alert('Не подключен к чату');
+                return;
+            }
+            
+            socket.emit('leaveChat', { chatId: currentChatId });
+            log(`Покинул чат: ${currentChatId}`);
+            currentChatId = null;
+        }
+
+        function sendMessage() {
+            const message = document.getElementById('message').value;
+            if (!socket || !currentChatId || !message) {
+                alert('Подключитесь к чату и введите сообщение');
+                return;
+            }
+            
+            socket.emit('sendMessage', { chatId: currentChatId, text: message });
+            log(`Отправлено сообщение: ${message}`);
+            document.getElementById('message').value = '';
+        }
+
+        function sendTyping(isTyping) {
+            if (!socket || !currentChatId) {
+                alert('Подключитесь к чату');
+                return;
+            }
+            
+            socket.emit('typing', { chatId: currentChatId, isTyping });
+            log(`${isTyping ? 'Начал' : 'Остановил'} печатать`);
+        }
+
+        // Автоподключение при загрузке страницы
+        window.onload = () => {
+            log('Страница загружена. Нажмите "Подключиться" для начала тестирования.');
+        };
+    </script>
+</body>
+</html>
+

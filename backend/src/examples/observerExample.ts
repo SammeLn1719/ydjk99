@@ -164,3 +164,4 @@ export function demonstrateObserverPattern(): void {
 
   console.log('\n=== Конец демонстрации ===\n');
 }
+

@@ -5,6 +5,12 @@
   color: white;
 }
 
+/* Dashboard specific styles */
+.dashboard-container {
+  height: 100vh;
+  overflow: hidden;
+}
+
 .App-header {
   padding: 2rem;
   background: rgba(0, 0, 0, 0.1);
